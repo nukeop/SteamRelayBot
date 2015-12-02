@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Net;
+using System.Web;
+using System.Text.RegularExpressions;
+using System.Collections.Specialized;
 
 using SteamKit2;
 
@@ -257,8 +261,35 @@ namespace SteamRelayBot
                 steamFriends.SendChatRoomMessage(callback.ChatRoomID, EChatEntryType.ChatMsg, "good. real good");
                 log.Info("[[ME]]: good. real good");
             }
+            
+            Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+            if (ytRegex.IsMatch(callback.Message))
+            {
+                Match ytMatch = ytRegex.Match(callback.Message);
+                string youtubeMessage = GetTitle(ytMatch.Groups["ID"].Value);
+                steamFriends.SendChatRoomMessage(callback.ChatRoomID, EChatEntryType.ChatMsg, youtubeMessage);
+            }
+        }
+        
+        public static string GetTitle(string id)
+        {
+            //string id = GetArgs(url, "v", '?');
+            WebClient client = new WebClient();
+            return GetArgs(client.DownloadString("http://youtube.com/get_video_info?video_id=" + id), "title", '&');
         }
 
-        
+        private static string GetArgs(string args, string key, char query)
+        {
+            int iqs = args.IndexOf(query);
+            string querystring = null;
+
+            if (iqs != -1)
+            {
+                querystring = (iqs < args.Length - 1) ? args.Substring(iqs + 1) : String.Empty;
+                NameValueCollection nvcArgs = HttpUtility.ParseQueryString(querystring);
+                return nvcArgs[key];
+            }
+            return String.Empty; // or throw an error
+        }
     }
 }
