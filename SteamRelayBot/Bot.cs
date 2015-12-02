@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using System.Net;
+using System.Web;
+using System.Text.RegularExpressions;
+using System.Collections.Specialized;
+
 using IrcDotNet;
 using SteamKit2;
 
@@ -196,6 +201,9 @@ namespace SteamRelayBot
                 }
             }
 
+            //Youtube titles
+            ParseYoutubeLinks(callback);
+
             if (callback.ChatMsgType.Equals(EChatEntryType.Disconnected) || callback.ChatMsgType.Equals(EChatEntryType.LeftConversation))
             {
                 mChattingUsers.Remove(new SteamUserInfo(callback.ChatterID, steamFriends.GetFriendPersonaName(callback.ChatterID)));
@@ -227,6 +235,19 @@ namespace SteamRelayBot
         {
             steamFriends.SendChatRoomMessage(chatID, EChatEntryType.ChatMsg, msg);
             log.Info(String.Format("[[ME]]: {0}", msg));
+        }
+
+
+
+        private void ParseYoutubeLinks(SteamFriends.ChatMsgCallback callback)
+        {
+            Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
+             if (ytRegex.IsMatch(callback.Message))
+                 {
+                Match ytMatch = ytRegex.Match(callback.Message);
+                string youtubeMessage = Util.GetYoutubeTitle(ytMatch.Groups["ID"].Value);
+                ChatroomMessage(chatRoomID, youtubeMessage);
+                 }
         }
 
         private void Insult(string user)

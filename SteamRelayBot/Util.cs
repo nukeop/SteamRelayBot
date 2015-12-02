@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Specialized;
+using System.Net;
+using System.Web;
 
 namespace SteamRelayBot
 {
@@ -35,6 +35,25 @@ namespace SteamRelayBot
                 }
             }
             return result;
+        }
+
+        public static string GetYoutubeTitle(string id)
+        {
+            WebClient client = new WebClient();
+            return GetArgs(client.DownloadString("http://youtube.com/get_video_info?video_id=" + id), "title", '&');
+        }
+
+        private static string GetArgs(string args, string key, char query)
+        {
+            int iqs = args.IndexOf(query);
+            string querystring = null;
+            if (iqs != -1)
+            {
+                querystring = (iqs < args.Length - 1) ? args.Substring(iqs + 1) : String.Empty;
+                NameValueCollection nvcArgs = HttpUtility.ParseQueryString(querystring);
+                return nvcArgs[key];
+            }
+            return String.Empty; // or throw an error
         }
     }
 }
