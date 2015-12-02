@@ -37,6 +37,7 @@ namespace SteamRelayBot
         //Used to communicate with steam
         SteamUser steamUser;
         SteamFriends steamFriends;
+        SteamClient steamClient;
 
         //ID of the chatroom we're in
         SteamID chatRoomID;
@@ -46,9 +47,9 @@ namespace SteamRelayBot
 
         //Credentials
         private string user = "relaybot";
-        private string pass = "l0rd_gumblert";
+        private string pass = "lord_gumbl3rt";
 
-        public Bot(SteamUser user, SteamFriends friends)
+        public Bot(SteamUser user, SteamFriends friends, SteamClient client)
         {
             mGreeted = new List<SteamID>();
             mChattingUsers = new List<SteamUserInfo>();
@@ -56,16 +57,24 @@ namespace SteamRelayBot
 
             steamUser = user;
             steamFriends = friends;
+            steamClient = client;
         }
 
-        public void OnConnected(SteamClient.ConnectedCallback callback)
+        public void Connect(SteamClient.ConnectedCallback callback, uint attempts)
         {
             if (callback.Result != EResult.OK)
             {
                 log.Error(String.Format("Unable to connect to Steam: {0}", callback.Result));
 
                 isRunning = false;
-                return;
+
+                if (attempts > 0)
+                {
+                    log.Info(String.Format("Retrying, remaining attempts: {0}", attempts));
+                    Connect(callback, attempts - 1);
+                }
+                else
+                    return;
             }
 
             log.Info(String.Format("Connected to Steam! Logging in '{0}'...", user));
@@ -77,11 +86,18 @@ namespace SteamRelayBot
             });
         }
 
+        public void OnConnected(SteamClient.ConnectedCallback callback)
+        {
+            Connect(callback, 10);
+        }
+
         public void OnDisconnected(SteamClient.DisconnectedCallback callback)
         {
             log.Info("Disconnected from Steam");
 
-            isRunning = false;
+            //isRunning = false;
+
+            steamClient.Connect();
         }
 
         public void OnLoggedOn(SteamUser.LoggedOnCallback callback)
@@ -229,6 +245,12 @@ namespace SteamRelayBot
                 userstrings.RemoveAt(0);
                 Insult(String.Join(" ", userstrings.ToArray()));
             }
+            else if (callback.Message.Contains("!stock"))
+            {
+                List<string> userstrings = new List<string>(callback.Message.Split(' '));
+                userstrings.RemoveAt(0);
+                Stock(String.Join(" ", userstrings.ToArray()));
+            }
         }
 
         private void ChatroomMessage(SteamID chatID, string msg)
@@ -271,6 +293,11 @@ namespace SteamRelayBot
             {
                 ChatroomMessage(chatRoomID, "I'm not going to insult someone who isn't even here, or hasn't talked yet.");
             }
+        }
+
+        private void Stock(string company)
+        {
+            ChatroomMessage(chatRoomID, Util.GetYahooStocks(company));
         }
 
         private void eightball()

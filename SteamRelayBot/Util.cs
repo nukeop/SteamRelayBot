@@ -43,6 +43,25 @@ namespace SteamRelayBot
             return GetArgs(client.DownloadString("http://youtube.com/get_video_info?video_id=" + id), "title", '&');
         }
 
+        public static string GetYahooStocks(string company)
+        {
+            WebClient client = new WebClient();
+            string site = client.DownloadString(String.Format("http://finance.yahoo.com/q?s={0}", company));
+            string tagstart = "yfs_l84";
+            string tagend = "yfs_c63";
+
+            int first = site.IndexOf(tagstart) + tagstart.Length + company.Length + 3;
+            int last = site.IndexOf(tagend);
+            try
+            {
+                return String.Format("Stock value for company {0}: {1}", company, site.Substring(first, last - first - 63));
+            }
+            catch (Exception e)
+            {
+                return String.Format("Could not retrieve stock value for company {0}", company);
+            }
+        }
+
         private static string GetArgs(string args, string key, char query)
         {
             int iqs = args.IndexOf(query);

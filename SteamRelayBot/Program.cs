@@ -32,7 +32,7 @@ namespace SteamRelayBot
             steamUser = steamClient.GetHandler<SteamUser>();
             steamFriends = steamClient.GetHandler<SteamFriends>();
 
-            bot = new Bot(steamUser, steamFriends);
+            bot = new Bot(steamUser, steamFriends, steamClient);
 
             manager.Subscribe<SteamClient.ConnectedCallback>(bot.OnConnected);
             manager.Subscribe<SteamClient.DisconnectedCallback>(bot.OnDisconnected);
