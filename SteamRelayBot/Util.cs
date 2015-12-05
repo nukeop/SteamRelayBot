@@ -18,7 +18,8 @@ namespace SteamRelayBot
                                             };
         public static string[] insults = { "Hey {0}, eat a dick", "Hey {0}, go fuck yourself", "Hey {0}, you're one ugly fag",
                                     "{0} is a dumb manboon", "{0} is a filthy liberal scum", "{0} buys Nvidia products",
-                                    "{0} you sonnovabitch", "{0} chats at CDS",
+                                    "{0} you sonnovabitch", "{0} chats at CDS", "{0} sucks", "{0}, you should kill yourself",
+                                    "{0} is a total loser", "{0} is pure scum",
                                     };
 
         public static T RandomChoice<T>(IEnumerable<T> source)
@@ -40,7 +41,7 @@ namespace SteamRelayBot
         public static string GetYoutubeTitle(string id)
         {
             WebClient client = new WebClient();
-            return GetArgs(client.DownloadString("http://youtube.com/get_video_info?video_id=" + id), "title", '&');
+            return GetArgs(client.DownloadString(String.Format("http://youtube.com/get_video_info?video_id={0}&el=vevo&el=embedded", id)), "title", '&');
         }
 
         public static string GetYahooStocks(string company)
@@ -54,7 +55,7 @@ namespace SteamRelayBot
             int last = site.IndexOf(tagend);
             try
             {
-                return String.Format("Stock value for company {0}: {1}", company, site.Substring(first, last - first - 63));
+                return String.Format("Stock value for company {0}: {1}", company, site.Substring(first, last - first - 61).Trim(new Char[] { '<', '>', '/', '\\' }));
             }
             catch (Exception e)
             {

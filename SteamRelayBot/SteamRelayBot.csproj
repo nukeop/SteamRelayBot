@@ -64,6 +64,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot.cs" />
+    <Compile Include="Commands\EightBall.cs" />
+    <Compile Include="Commands\ICommand.cs" />
+    <Compile Include="Commands\Insult.cs" />
+    <Compile Include="Commands\ListCommands.cs" />
+    <Compile Include="Commands\Stock.cs" />
+    <Compile Include="IrcBot.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 
 using SteamKit2;
+using IrcDotNet;
 
 namespace SteamRelayBot
 {
-    
-
     class Program
     {
         static SteamClient steamClient;
@@ -16,15 +15,13 @@ namespace SteamRelayBot
         static SteamUser steamUser;
         static SteamFriends steamFriends;
 
-        static string user, pass, authCode = "";
-
         static Logger log;
         static Bot bot;
 
         static void Main(string[] args)
         {
             Logger.filename = "relaybot.log";
-            log = Logger.GetLogger(); 
+            log = Logger.GetLogger();
 
             steamClient = new SteamClient(System.Net.Sockets.ProtocolType.Tcp);
             manager = new CallbackManager(steamClient);
@@ -62,21 +59,5 @@ namespace SteamRelayBot
                 manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
             }
         }
-
-        
-
-        
-
-        
-
-       
-
-        
-
-        
-
-        
-
-        
     }
 }

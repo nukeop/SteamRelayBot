@@ -1,13 +1,8 @@
-﻿using System;
+﻿using SteamKit2;
+using System;
 using System.Collections.Generic;
-
-using System.Net;
-using System.Web;
 using System.Text.RegularExpressions;
-using System.Collections.Specialized;
-
-using IrcDotNet;
-using SteamKit2;
+using SteamRelayBot.Commands;
 
 namespace SteamRelayBot
 {
@@ -34,30 +29,45 @@ namespace SteamRelayBot
         //List of people seen chatting
         List<SteamUserInfo> mChattingUsers;
 
+        //Dictionary of available commands
+        Dictionary<string, ICommand> mCommands;
+
         //Used to communicate with steam
         SteamUser steamUser;
         SteamFriends steamFriends;
         SteamClient steamClient;
 
         //ID of the chatroom we're in
-        SteamID chatRoomID;
+        public SteamID chatRoomID;
 
         //Continue running
         public bool isRunning;
 
         //Credentials
         private string user = "relaybot";
-        private string pass = "lord_gumbl3rt";
+        private string pass = "";
 
         public Bot(SteamUser user, SteamFriends friends, SteamClient client)
         {
             mGreeted = new List<SteamID>();
             mChattingUsers = new List<SteamUserInfo>();
+            mCommands = new Dictionary<string, ICommand>();
             log = Logger.GetLogger();
 
             steamUser = user;
             steamFriends = friends;
             steamClient = client;
+
+            //Add instances of commands to the list
+            ICommand com;
+            com = new ListCommands();
+            mCommands[com.GetCommandString()] = com;
+            com = new EightBall();
+            mCommands[com.GetCommandString()] = com;
+            com = new Insult();
+            mCommands[com.GetCommandString()] = com;
+            com = new Stock();
+            mCommands[com.GetCommandString()] = com;
         }
 
         public void Connect(SteamClient.ConnectedCallback callback, uint attempts)
@@ -94,8 +104,6 @@ namespace SteamRelayBot
         public void OnDisconnected(SteamClient.DisconnectedCallback callback)
         {
             log.Info("Disconnected from Steam");
-
-            //isRunning = false;
 
             steamClient.Connect();
         }
@@ -177,12 +185,7 @@ namespace SteamRelayBot
             if (callback.EntryType.Equals(EChatEntryType.ChatMsg))
                 log.Info(String.Format("Message from {0}: {1}", steamFriends.GetFriendPersonaName(callback.Sender), callback.Message));
 
-            if (callback.Message.Contains("!say "))
-            {
-                List<string> msgstrings = new List<string>(callback.Message.Split(' '));
-                msgstrings.RemoveAt(0);
-                ChatroomMessage(chatRoomID, String.Join(" ", msgstrings.ToArray()));
-            }
+            ParseCommands(callback);
         }
 
         public void OnChatEnter(SteamFriends.ChatEnterCallback callback)
@@ -220,103 +223,113 @@ namespace SteamRelayBot
             //Youtube titles
             ParseYoutubeLinks(callback);
 
+            //Various commands
+            ParseCommands(callback);
+
             if (callback.ChatMsgType.Equals(EChatEntryType.Disconnected) || callback.ChatMsgType.Equals(EChatEntryType.LeftConversation))
             {
                 mChattingUsers.Remove(new SteamUserInfo(callback.ChatterID, steamFriends.GetFriendPersonaName(callback.ChatterID)));
                 log.Info(String.Format("{0}[[{1}]] left the chat", steamFriends.GetFriendPersonaName(callback.ChatterID), callback.ChatterID.Render()));
             }
-
-            if (callback.Message.Contains("what's the count") || callback.Message.Contains("whats the count"))
-            {
-                ChatroomMessage(chatRoomID, "good. real good");
-            }
-
-            if (callback.Message.Equals("!commands"))
-            {
-                ListCommands();
-            }
-            else if (callback.Message.Equals("!8ball"))
-            {
-                eightball();
-            }
-            else if (callback.Message.Contains("!insult"))
-            {
-                List<string> userstrings = new List<string>(callback.Message.Split(' '));
-                userstrings.RemoveAt(0);
-                Insult(String.Join(" ", userstrings.ToArray()));
-            }
-            else if (callback.Message.Contains("!stock"))
-            {
-                List<string> userstrings = new List<string>(callback.Message.Split(' '));
-                userstrings.RemoveAt(0);
-                Stock(String.Join(" ", userstrings.ToArray()));
-            }
         }
 
-        private void ChatroomMessage(SteamID chatID, string msg)
+        public void ChatroomMessage(SteamID chatID, string msg)
         {
             steamFriends.SendChatRoomMessage(chatID, EChatEntryType.ChatMsg, msg);
             log.Info(String.Format("[[ME]]: {0}", msg));
         }
 
+        public void FriendMessage(SteamID friendID, string msg)
+        {
+            steamFriends.SendChatMessage(friendID, EChatEntryType.ChatMsg, msg);
+            log.Info(String.Format("[[ME]] (to {0}): {1}", steamFriends.GetFriendPersonaName(friendID), msg));
+        }
 
+        public void TryCallCommandGroup(SteamFriends.ChatMsgCallback callback, string command, Object[] args = null)
+        {
+            ICommand com = null;
+            mCommands.TryGetValue(command, out com);
+            if (com != null)
+            {
+                com.GroupRun(callback, this, args);
+            }
+            else
+            {
+                ChatroomMessage(chatRoomID, String.Format("Command !{0} not found.", command));
+            }
+
+        }
+
+        public void TryCallCommandFriend(SteamFriends.FriendMsgCallback callback, string command, Object[] args = null)
+        {
+            ICommand com = null;
+            mCommands.TryGetValue(command, out com);
+            if (com != null)
+            {
+                if (com.AvailableForFriends())
+                    com.FriendRun(callback, this, args);
+            }
+            else
+            {
+                FriendMessage(callback.Sender, String.Format("Command !{0} not found.", command));
+            }
+        }
+
+        //Parses commands from users
+        private void ParseCommands(SteamFriends.FriendMsgCallback callback)
+        {
+            if (callback.Message.Contains("!say "))
+            {
+                List<string> msgstrings = new List<string>(callback.Message.Split(' '));
+                msgstrings.RemoveAt(0);
+                ChatroomMessage(chatRoomID, String.Join(" ", msgstrings.ToArray()));
+            }
+
+            if (callback.Message.Equals("!commands"))
+            {
+                TryCallCommandFriend(callback, "commands", new Object[] { mCommands });
+            }
+            else if (callback.Message.Equals("!8ball"))
+            {
+                TryCallCommandFriend(callback, "8ball");
+
+            }
+            else if (callback.Message.Contains("!stock"))
+            {
+                TryCallCommandFriend(callback, "stock");
+            }
+        }
+
+        //Parses commands from group chat
+        private void ParseCommands(SteamFriends.ChatMsgCallback callback)
+        {
+            if (callback.Message.Equals("!commands"))
+            {
+                TryCallCommandGroup(callback, "commands", new Object[] { mCommands });
+            }
+            else if (callback.Message.Equals("!8ball"))
+            {
+                TryCallCommandGroup(callback, "8ball");
+            }
+            else if (callback.Message.Contains("!insult"))
+            {
+                TryCallCommandGroup(callback, "insult", new Object[] { mChattingUsers });
+            }
+            else if (callback.Message.Contains("!stock"))
+            {
+                TryCallCommandGroup(callback, "stock");
+            }
+        }
 
         private void ParseYoutubeLinks(SteamFriends.ChatMsgCallback callback)
         {
             Regex ytRegex = new Regex("(((youtube.*(v=|/v/))|(youtu\\.be/))(?<ID>[-_a-zA-Z0-9]+))");
-             if (ytRegex.IsMatch(callback.Message))
-                 {
+            if (ytRegex.IsMatch(callback.Message))
+            {
                 Match ytMatch = ytRegex.Match(callback.Message);
                 string youtubeMessage = Util.GetYoutubeTitle(ytMatch.Groups["ID"].Value);
                 ChatroomMessage(chatRoomID, youtubeMessage);
-                 }
-        }
-
-        private void Insult(string user)
-        {
-            bool found = false;
-            foreach (SteamUserInfo sui in mChattingUsers)
-            {
-                if (sui.username.Equals(user))
-                {
-                    found = true;
-                    break;
-                }
             }
-
-            if (found)
-            {
-                string insult = Util.RandomChoice<string>(Util.insults);
-                ChatroomMessage(chatRoomID, String.Format(insult, user));
-            }
-            else
-            {
-                ChatroomMessage(chatRoomID, "I'm not going to insult someone who isn't even here, or hasn't talked yet.");
-            }
-        }
-
-        private void Stock(string company)
-        {
-            ChatroomMessage(chatRoomID, Util.GetYahooStocks(company));
-        }
-
-        private void eightball()
-        {
-            Random rnd = new Random();
-
-            string result = Util.RandomChoice<string>(Util.eightballAnswers);
-
-            ChatroomMessage(chatRoomID, result);
-        }
-
-        private void ListCommands()
-        {
-            string commands = @"
-                !commands - shows a list of all commands
-                !8ball - answers a yes/no question
-                !insult <user> - insults a user
-                !stock <company> - shows current stocks values";
-            ChatroomMessage(chatRoomID, commands);
         }
     }
 }
