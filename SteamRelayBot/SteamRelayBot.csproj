@@ -52,6 +52,9 @@
     <Reference Include="IrcDotNet">
       <HintPath>.\IrcDotNet.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\Json.NET\Bin\Net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
@@ -64,11 +67,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot.cs" />
+    <Compile Include="Commands\DuckDuckGoDefine.cs" />
     <Compile Include="Commands\EightBall.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\Insult.cs" />
     <Compile Include="Commands\ListCommands.cs" />
     <Compile Include="Commands\Stock.cs" />
+    <Compile Include="Commands\UrbanDictionary.cs" />
     <Compile Include="IrcBot.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />

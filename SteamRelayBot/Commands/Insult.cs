@@ -49,7 +49,7 @@ namespace SteamRelayBot.Commands
             }
             else
             {
-                bot.ChatroomMessage(bot.chatRoomID, "I'm not going to insult someobody who isn't even here, or hasn't talked yet.");
+                bot.ChatroomMessage(bot.chatRoomID, "I'm not going to insult somebody who isn't even here, or hasn't talked yet.");
             }
         }
     }

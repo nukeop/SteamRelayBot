@@ -70,6 +70,8 @@ namespace SteamRelayBot
             mCommands[com.GetCommandString()] = com;
             com = new DuckDuckGoDefine();
             mCommands[com.GetCommandString()] = com;
+            com = new UrbanDictionary();
+            mCommands[com.GetCommandString()] = com;
         }
 
         public void Connect(SteamClient.ConnectedCallback callback, uint attempts)
@@ -296,13 +298,17 @@ namespace SteamRelayBot
                 TryCallCommandFriend(callback, "8ball");
 
             }
-            else if (callback.Message.Contains("!stock"))
+            else if (callback.Message.Contains("!stock "))
             {
                 TryCallCommandFriend(callback, "stock");
             }
-            else if(callback.Message.Contains("!ddg"))
+            else if(callback.Message.Contains("!ddg "))
             {
                 TryCallCommandFriend(callback, "ddg");
+            }
+            else if (callback.Message.Contains("!urban "))
+            {
+                TryCallCommandFriend(callback, "urban");
             }
         }
 
@@ -328,6 +334,10 @@ namespace SteamRelayBot
             else if (callback.Message.Contains("!ddg "))
             {
                 TryCallCommandGroup(callback, "ddg");
+            }
+            else if (callback.Message.Contains("!urban "))
+            {
+                TryCallCommandGroup(callback, "urban");
             }
         }
 

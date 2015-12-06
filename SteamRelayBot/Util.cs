@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
+using System.Text;
 using System.Web;
 using System.Xml;
+using Newtonsoft.Json;
 
 namespace SteamRelayBot
 {
@@ -84,18 +86,61 @@ namespace SteamRelayBot
                 if (node != null)
                     abstractUrl = node.Value;
 
-                if (!String.IsNullOrEmpty(_abstract) || !String.IsNullOrEmpty(abstractUrl))
+                if (!String.IsNullOrEmpty(_abstract) && !String.IsNullOrEmpty(abstractUrl))
                 {
-                    if(String.IsNullOrEmpty(_abstract))
-                    {
-                        return abstractUrl;
-                    }
                     return _abstract + "\n\n" + abstractUrl;
                 }
+
+                if (!String.IsNullOrEmpty(_abstract))
+                {
+                    return _abstract;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                XmlNodeList relatedTopics = doc.SelectNodes("//DuckDuckGoResponse/RelatedTopics/RelatedTopic");
+                int counter = 0;
+                foreach(XmlNode xn in relatedTopics)
+                {
+                    sb.Append("("+counter+") "+xn["Text"].InnerText);
+                    sb.Append("\n");
+                    counter++;
+
+                    if (counter >= 5)
+                        break;
+                }
+
+                string related = sb.ToString();
+                if(!String.IsNullOrEmpty(related))
+                {
+                    return String.Format("No information about topic {0}, here are some related terms:\n\n{1}", term, related);
+                }
+
+                if (!String.IsNullOrEmpty(abstractUrl))
+                {
+                    return abstractUrl;
+                }
+
             }
 
             return String.Format("No information about topic {0}.", term);
 
+        }
+
+        public static string GetUrbanDictionaryDefiniton(string term)
+        {
+            WebClient client = new WebClient();
+            term.Replace(' ', '+');
+
+            string query = String.Format("http://api.urbandictionary.com/v0/define?term={0}", term);
+            string site = client.DownloadString(query);
+
+            XmlDocument doc = JsonConvert.DeserializeXmlNode(site, "root");
+            XmlNode node = doc.SelectSingleNode("//root/list/definition/text()");
+
+            if (node != null && !String.IsNullOrEmpty(node.InnerText))
+                return node.InnerText;
+            else
+                return String.Format("No definition for word {0} in Urban Dictionary.", term);
         }
 
         private static string GetArgs(string args, string key, char query)
