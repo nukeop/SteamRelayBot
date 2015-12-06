@@ -68,6 +68,8 @@ namespace SteamRelayBot
             mCommands[com.GetCommandString()] = com;
             com = new Stock();
             mCommands[com.GetCommandString()] = com;
+            com = new DuckDuckGoDefine();
+            mCommands[com.GetCommandString()] = com;
         }
 
         public void Connect(SteamClient.ConnectedCallback callback, uint attempts)
@@ -298,6 +300,10 @@ namespace SteamRelayBot
             {
                 TryCallCommandFriend(callback, "stock");
             }
+            else if(callback.Message.Contains("!ddg"))
+            {
+                TryCallCommandFriend(callback, "ddg");
+            }
         }
 
         //Parses commands from group chat
@@ -311,13 +317,17 @@ namespace SteamRelayBot
             {
                 TryCallCommandGroup(callback, "8ball");
             }
-            else if (callback.Message.Contains("!insult"))
+            else if (callback.Message.Contains("!insult "))
             {
                 TryCallCommandGroup(callback, "insult", new Object[] { mChattingUsers });
             }
-            else if (callback.Message.Contains("!stock"))
+            else if (callback.Message.Contains("!stock "))
             {
                 TryCallCommandGroup(callback, "stock");
+            }
+            else if (callback.Message.Contains("!ddg "))
+            {
+                TryCallCommandGroup(callback, "ddg");
             }
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.Web;
+using System.Xml;
 
 namespace SteamRelayBot
 {
@@ -61,6 +62,40 @@ namespace SteamRelayBot
             {
                 return String.Format("Could not retrieve stock value for company {0}", company);
             }
+        }
+
+        public static string GetDDGTopicSummary(string term)
+        {
+            WebClient client = new WebClient();
+            term.Replace(' ', '+');
+            string query = String.Format("https://api.duckduckgo.com/?q={0}&format=xml", term);
+            string site = client.DownloadString(query);
+            if (!String.IsNullOrEmpty(site))
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(site);
+
+                string _abstract="", abstractUrl="";
+
+                XmlNode node = doc.SelectSingleNode("//DuckDuckGoResponse/Abstract/text()");
+                if(node != null)
+                _abstract = node.Value;
+                node = doc.SelectSingleNode("//DuckDuckGoResponse/AbstractURL/text()");
+                if (node != null)
+                    abstractUrl = node.Value;
+
+                if (!String.IsNullOrEmpty(_abstract) || !String.IsNullOrEmpty(abstractUrl))
+                {
+                    if(String.IsNullOrEmpty(_abstract))
+                    {
+                        return abstractUrl;
+                    }
+                    return _abstract + "\n\n" + abstractUrl;
+                }
+            }
+
+            return String.Format("No information about topic {0}.", term);
+
         }
 
         private static string GetArgs(string args, string key, char query)
