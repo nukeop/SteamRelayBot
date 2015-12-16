@@ -1,8 +1,8 @@
 ﻿using SteamKit2;
+using SteamRelayBot.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using SteamRelayBot.Commands;
 
 namespace SteamRelayBot
 {
@@ -45,7 +45,7 @@ namespace SteamRelayBot
 
         //Credentials
         private string user = "relaybot";
-        private string pass = "";
+        private string pass = "l0rd_gumbl3rt";
 
         public Bot(SteamUser user, SteamFriends friends, SteamClient client)
         {
@@ -71,6 +71,10 @@ namespace SteamRelayBot
             com = new DuckDuckGoDefine();
             mCommands[com.GetCommandString()] = com;
             com = new UrbanDictionary();
+            mCommands[com.GetCommandString()] = com;
+            com = new Joke();
+            mCommands[com.GetCommandString()] = com;
+            com = new AddJoke();
             mCommands[com.GetCommandString()] = com;
         }
 
@@ -310,6 +314,14 @@ namespace SteamRelayBot
             {
                 TryCallCommandFriend(callback, "urban");
             }
+            else if (callback.Message.Equals("!joke"))
+            {
+                TryCallCommandFriend(callback, "joke");
+            }
+            else if (callback.Message.Contains("!addjoke "))
+            {
+                TryCallCommandFriend(callback, "addjoke");
+            }
         }
 
         //Parses commands from group chat
@@ -338,6 +350,14 @@ namespace SteamRelayBot
             else if (callback.Message.Contains("!urban "))
             {
                 TryCallCommandGroup(callback, "urban");
+            }
+            else if(callback.Message.Equals("!joke"))
+            {
+                TryCallCommandGroup(callback, "joke");
+            }
+            else if(callback.Message.Contains("!addjoke "))
+            {
+                TryCallCommandGroup(callback, "addjoke");
             }
         }
 

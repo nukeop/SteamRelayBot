@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Linq;
 using System.Web;
 using System.Xml;
-using Newtonsoft.Json;
 
 namespace SteamRelayBot
 {
@@ -75,6 +77,8 @@ namespace SteamRelayBot
             if (!String.IsNullOrEmpty(site))
             {
                 XmlDocument doc = new XmlDocument();
+                //Remove invalid characters
+                site = new string(site.Where(ch => XmlConvert.IsXmlChar(ch)).ToArray());
                 doc.LoadXml(site);
 
                 string _abstract="", abstractUrl="";
