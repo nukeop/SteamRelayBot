@@ -21,7 +21,7 @@ namespace SteamRelayBot.Commands
 
         public string GetDescription()
         {
-            return "adds a new joke to the database (you can add links to funny images but try not to abuse this)";
+            return "adds a new joke to the database (you can also add links to funny images but try not to abuse this)";
         }
 
         public void FriendRun(SteamFriends.FriendMsgCallback callback, Bot bot, object[] args = null)
@@ -40,9 +40,11 @@ namespace SteamRelayBot.Commands
 
         public void AddNewJoke(string message)
         {
+            //Create sanitised string with the joke
             List<string> strings = new List<string>(message.Split(' '));
             strings.RemoveAt(0);
             string joke = String.Join(" ", strings.ToArray());
+            joke = System.Text.RegularExpressions.Regex.Escape(joke.Replace("'", @"''")) ;
 
             SQLiteDatabase db = new SQLiteDatabase();
             Dictionary<String, String> data = new Dictionary<String, String>();

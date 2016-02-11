@@ -45,7 +45,7 @@ namespace SteamRelayBot
 
         //Credentials
         private string user = "relaybot";
-        private string pass = "l0rd_gumbl3rt";
+        private string pass = "";
 
         public Bot(SteamUser user, SteamFriends friends, SteamClient client)
         {
@@ -76,6 +76,13 @@ namespace SteamRelayBot
             mCommands[com.GetCommandString()] = com;
             com = new AddJoke();
             mCommands[com.GetCommandString()] = com;
+            com = new Trivia();
+            mCommands[com.GetCommandString()] = com;
+            com = new AddTrivia();
+            mCommands[com.GetCommandString()] = com;
+            com = new SpillTheBeans();
+            mCommands[com.GetCommandString()] = com;
+
         }
 
         public void Connect(SteamClient.ConnectedCallback callback, uint attempts)
@@ -322,6 +329,20 @@ namespace SteamRelayBot
             {
                 TryCallCommandFriend(callback, "addjoke");
             }
+            else if (callback.Message.Contains("!trivia"))
+            {
+                TryCallCommandFriend(callback, "trivia");
+            }
+            else if (callback.Message.Contains("!addtrivia"))
+            {
+                TryCallCommandFriend(callback, "addtrivia", new Object[] { steamFriends });
+            }
+            else if(callback.Message.Contains("!spillthebeans "))
+            {
+                TryCallCommandFriend(callback, "spillthebeans");
+            }
+
+
         }
 
         //Parses commands from group chat
@@ -358,6 +379,18 @@ namespace SteamRelayBot
             else if(callback.Message.Contains("!addjoke "))
             {
                 TryCallCommandGroup(callback, "addjoke");
+            }
+            else if (callback.Message.Contains("!trivia"))
+            {
+                TryCallCommandGroup(callback, "trivia");
+            }
+            else if (callback.Message.Contains("!addtrivia"))
+            {
+                TryCallCommandGroup(callback, "addtrivia", new Object[] { steamFriends });
+            }
+            else if (callback.Message.Contains("!spillthebeans "))
+            {
+                TryCallCommandGroup(callback, "spillthebeans");
             }
         }
 

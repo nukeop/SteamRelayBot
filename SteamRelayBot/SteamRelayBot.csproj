@@ -78,13 +78,16 @@
   <ItemGroup>
     <Compile Include="Bot.cs" />
     <Compile Include="Commands\AddJoke.cs" />
+    <Compile Include="Commands\AddTrivia.cs" />
     <Compile Include="Commands\DuckDuckGoDefine.cs" />
     <Compile Include="Commands\EightBall.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\Insult.cs" />
     <Compile Include="Commands\Joke.cs" />
     <Compile Include="Commands\ListCommands.cs" />
+    <Compile Include="Commands\SpillTheBeans.cs" />
     <Compile Include="Commands\Stock.cs" />
+    <Compile Include="Commands\Trivia.cs" />
     <Compile Include="Commands\UrbanDictionary.cs" />
     <Compile Include="DataSet1.Designer.cs">
       <AutoGen>True</AutoGen>

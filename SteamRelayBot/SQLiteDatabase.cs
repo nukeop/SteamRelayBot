@@ -16,7 +16,7 @@ namespace SteamRelayBot
         public SQLiteDatabase()
         {
             log = Logger.GetLogger();
-            dbConnection = @"data source=C:\Users\BitFenix\Desktop\SteamKit\SteamKit2\SteamRelayBotDB.db;Base Schema Name=relaybot_schema";
+            dbConnection = @"data source=SteamRelayBotDB.db;Base Schema Name=relaybot_schema";
         }
 
         /// <summary>
