@@ -47,6 +47,13 @@ namespace SteamRelayBot
         private string user = "relaybot";
         private string pass = "";
 
+        //Lists of commands
+        List<string> mSimpleGroupCommands = new List<string> { "8ball", "joke", "trivia" };
+        List<string> mArgGroupCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans" };
+        List<string> mSimpleUserCommands = new List<string> { "8ball", "joke", "trivia" };
+        List<string> mArgUserCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans" };
+
+
         public Bot(SteamUser user, SteamFriends friends, SteamClient client)
         {
             mGreeted = new List<SteamID>();
@@ -59,30 +66,22 @@ namespace SteamRelayBot
             steamClient = client;
 
             //Add instances of commands to the list
-            ICommand com;
-            com = new ListCommands();
-            mCommands[com.GetCommandString()] = com;
-            com = new EightBall();
-            mCommands[com.GetCommandString()] = com;
-            com = new Insult();
-            mCommands[com.GetCommandString()] = com;
-            com = new Stock();
-            mCommands[com.GetCommandString()] = com;
-            com = new DuckDuckGoDefine();
-            mCommands[com.GetCommandString()] = com;
-            com = new UrbanDictionary();
-            mCommands[com.GetCommandString()] = com;
-            com = new Joke();
-            mCommands[com.GetCommandString()] = com;
-            com = new AddJoke();
-            mCommands[com.GetCommandString()] = com;
-            com = new Trivia();
-            mCommands[com.GetCommandString()] = com;
-            com = new AddTrivia();
-            mCommands[com.GetCommandString()] = com;
-            com = new SpillTheBeans();
-            mCommands[com.GetCommandString()] = com;
+            List<ICommand> commandsToAdd = new List<ICommand> {
+                new ListCommands(),
+                new EightBall(),
+                new Insult(),
+                new Stock(),
+                new DuckDuckGoDefine(),
+                new UrbanDictionary(),
+                new Joke(),
+                new AddJoke(),
+                new Trivia(),
+                new AddTrivia(),
+                new SpillTheBeans(),
+            };
 
+            foreach(ICommand com in commandsToAdd)
+                mCommands[com.GetCommandString()] = com;
         }
 
         public void Connect(SteamClient.ConnectedCallback callback, uint attempts)
@@ -293,105 +292,63 @@ namespace SteamRelayBot
         //Parses commands from users
         private void ParseCommands(SteamFriends.FriendMsgCallback callback)
         {
+
+            //Commands that do not require any additional arguments
+            foreach (string com in mSimpleUserCommands)
+                if (callback.Message.Equals("!" + com))
+                    TryCallCommandFriend(callback, com);
+
+            //Commands that take arguments from steam chat
+            foreach (string com in mArgUserCommands)
+                if (callback.Message.Contains("!" + com + " "))
+                    TryCallCommandFriend(callback, com);
+
+
+            //Complex commands that need specific arguments passed when called
             if (callback.Message.Contains("!say "))
             {
                 List<string> msgstrings = new List<string>(callback.Message.Split(' '));
                 msgstrings.RemoveAt(0);
                 ChatroomMessage(chatRoomID, String.Join(" ", msgstrings.ToArray()));
             }
-
-            if (callback.Message.Equals("!commands"))
+            else if (callback.Message.Equals("!commands"))
             {
                 TryCallCommandFriend(callback, "commands", new Object[] { mCommands });
-            }
-            else if (callback.Message.Equals("!8ball"))
-            {
-                TryCallCommandFriend(callback, "8ball");
-
-            }
-            else if (callback.Message.Contains("!stock "))
-            {
-                TryCallCommandFriend(callback, "stock");
-            }
-            else if(callback.Message.Contains("!ddg "))
-            {
-                TryCallCommandFriend(callback, "ddg");
-            }
-            else if (callback.Message.Contains("!urban "))
-            {
-                TryCallCommandFriend(callback, "urban");
-            }
-            else if (callback.Message.Equals("!joke"))
-            {
-                TryCallCommandFriend(callback, "joke");
-            }
-            else if (callback.Message.Contains("!addjoke "))
-            {
-                TryCallCommandFriend(callback, "addjoke");
-            }
-            else if (callback.Message.Contains("!trivia"))
-            {
-                TryCallCommandFriend(callback, "trivia");
             }
             else if (callback.Message.Contains("!addtrivia"))
             {
                 TryCallCommandFriend(callback, "addtrivia", new Object[] { steamFriends });
             }
-            else if(callback.Message.Contains("!spillthebeans "))
-            {
-                TryCallCommandFriend(callback, "spillthebeans");
-            }
-
 
         }
 
         //Parses commands from group chat
         private void ParseCommands(SteamFriends.ChatMsgCallback callback)
         {
+            //Commands that do not require any additional arguments
+            foreach (string com in mSimpleGroupCommands)
+                if (callback.Message.Equals("!"+com))
+                    TryCallCommandGroup(callback,com);
+
+            //Commands that take arguments from steam chat
+            foreach (string com in mArgGroupCommands)
+                if (callback.Message.Contains("!" + com + " "))
+                    TryCallCommandGroup(callback, com);
+
+            //Complex commands that need specific arguments passed when called
             if (callback.Message.Equals("!commands"))
             {
                 TryCallCommandGroup(callback, "commands", new Object[] { mCommands });
-            }
-            else if (callback.Message.Equals("!8ball"))
-            {
-                TryCallCommandGroup(callback, "8ball");
             }
             else if (callback.Message.Contains("!insult "))
             {
                 TryCallCommandGroup(callback, "insult", new Object[] { mChattingUsers });
             }
-            else if (callback.Message.Contains("!stock "))
-            {
-                TryCallCommandGroup(callback, "stock");
-            }
-            else if (callback.Message.Contains("!ddg "))
-            {
-                TryCallCommandGroup(callback, "ddg");
-            }
-            else if (callback.Message.Contains("!urban "))
-            {
-                TryCallCommandGroup(callback, "urban");
-            }
-            else if(callback.Message.Equals("!joke"))
-            {
-                TryCallCommandGroup(callback, "joke");
-            }
-            else if(callback.Message.Contains("!addjoke "))
-            {
-                TryCallCommandGroup(callback, "addjoke");
-            }
-            else if (callback.Message.Contains("!trivia"))
-            {
-                TryCallCommandGroup(callback, "trivia");
-            }
             else if (callback.Message.Contains("!addtrivia"))
             {
                 TryCallCommandGroup(callback, "addtrivia", new Object[] { steamFriends });
             }
-            else if (callback.Message.Contains("!spillthebeans "))
-            {
-                TryCallCommandGroup(callback, "spillthebeans");
-            }
+
         }
 
         private void ParseYoutubeLinks(SteamFriends.ChatMsgCallback callback)
