@@ -85,6 +85,7 @@
     <Compile Include="Commands\Insult.cs" />
     <Compile Include="Commands\Joke.cs" />
     <Compile Include="Commands\ListCommands.cs" />
+    <Compile Include="Commands\Nsa.cs" />
     <Compile Include="Commands\SpillTheBeans.cs" />
     <Compile Include="Commands\Stock.cs" />
     <Compile Include="Commands\Trivia.cs" />

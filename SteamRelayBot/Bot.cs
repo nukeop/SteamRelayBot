@@ -48,9 +48,9 @@ namespace SteamRelayBot
         private string pass = "";
 
         //Lists of commands
-        List<string> mSimpleGroupCommands = new List<string> { "8ball", "joke", "trivia" };
+        List<string> mSimpleGroupCommands = new List<string> { "8ball", "joke", "trivia", "nsa" };
         List<string> mArgGroupCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans" };
-        List<string> mSimpleUserCommands = new List<string> { "8ball", "joke", "trivia" };
+        List<string> mSimpleUserCommands = new List<string> { "8ball", "joke", "trivia", "nsa" };
         List<string> mArgUserCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans" };
 
 
@@ -78,6 +78,7 @@ namespace SteamRelayBot
                 new Trivia(),
                 new AddTrivia(),
                 new SpillTheBeans(),
+                new Nsa(),
             };
 
             foreach(ICommand com in commandsToAdd)
