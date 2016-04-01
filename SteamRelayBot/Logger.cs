@@ -27,6 +27,12 @@ namespace SteamRelayBot
             return log;
         }
 
+        public static string CreateLogFilename(string name)
+        {
+            //A tool to create a standard filename from a chatroom name
+            return name + "-chatroom.log";
+        }
+
         public void LogMessage(string message, string level)
         {
             System.IO.StreamWriter file = new System.IO.StreamWriter(filename, true);

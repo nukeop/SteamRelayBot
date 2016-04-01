@@ -20,7 +20,7 @@ namespace SteamRelayBot
 
         static void Main(string[] args)
         {
-            Logger.filename = "relaybot.log";
+            Logger.filename = "RelayBot.log";
             log = Logger.GetLogger();
 
             steamClient = new SteamClient(System.Net.Sockets.ProtocolType.Tcp);

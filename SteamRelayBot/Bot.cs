@@ -2,6 +2,7 @@
 using SteamRelayBot.Commands;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Text.RegularExpressions;
 
 namespace SteamRelayBot
@@ -42,10 +43,6 @@ namespace SteamRelayBot
 
         //Continue running
         public bool isRunning;
-
-        //Credentials
-        private string user = "relaybot";
-        private string pass = "";
 
         //Lists of commands
         List<string> mSimpleGroupCommands = new List<string> { "8ball", "joke", "trivia", "nsa" };
@@ -101,6 +98,9 @@ namespace SteamRelayBot
                 else
                     return;
             }
+            
+            string user = ConfigurationManager.AppSettings["user"];
+            string pass = ConfigurationManager.AppSettings["password"];
 
             log.Info(String.Format("Connected to Steam! Logging in '{0}'...", user));
 
@@ -161,7 +161,7 @@ namespace SteamRelayBot
             {
                 SteamID steamIdFriend = steamFriends.GetFriendByIndex(x);
 
-                log.Info(String.Format("Friend: {0}", steamIdFriend.Render()));
+                log.Info(String.Format("Friend: {0} ({1})", steamFriends.GetFriendPersonaName(steamIdFriend), steamIdFriend.Render()));
             }
 
             foreach (var friend in callback.FriendList)
@@ -169,7 +169,7 @@ namespace SteamRelayBot
                 if (friend.Relationship == EFriendRelationship.RequestRecipient)
                 {
                     // add everyone who invited us to friends
-                    log.Info(String.Format("User {0} added me to his/her friends", friend.SteamID.Render()));
+                    log.Info(String.Format("User {0} ({1}) added me to his/her friends", steamFriends.GetFriendPersonaName(friend.SteamID), friend.SteamID.Render()));
                     steamFriends.AddFriend(friend.SteamID);
                 }
             }
@@ -215,6 +215,13 @@ namespace SteamRelayBot
 
         public void OnChatroomMessage(SteamFriends.ChatMsgCallback callback)
         {
+            //Set the current chatroom id
+            this.chatRoomID = callback.ChatRoomID;
+
+            //Log to a separate file for every chatroom
+            string currentLogFile = Logger.filename;
+            Logger.filename = Logger.CreateLogFilename(callback.ChatRoomID.Render());
+
             if (callback.ChatMsgType.Equals(EChatEntryType.ChatMsg))
             {
                 //Add them to chatting users list
@@ -246,6 +253,9 @@ namespace SteamRelayBot
                 mChattingUsers.Remove(new SteamUserInfo(callback.ChatterID, steamFriends.GetFriendPersonaName(callback.ChatterID)));
                 log.Info(String.Format("{0}[[{1}]] left the chat", steamFriends.GetFriendPersonaName(callback.ChatterID), callback.ChatterID.Render()));
             }
+
+            //Restore old log filename
+            Logger.filename = currentLogFile;
         }
 
         public void ChatroomMessage(SteamID chatID, string msg)
@@ -349,7 +359,6 @@ namespace SteamRelayBot
             {
                 TryCallCommandGroup(callback, "addtrivia", new Object[] { steamFriends });
             }
-
         }
 
         private void ParseYoutubeLinks(SteamFriends.ChatMsgCallback callback)
