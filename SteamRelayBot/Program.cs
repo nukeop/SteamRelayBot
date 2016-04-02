@@ -46,6 +46,8 @@ namespace SteamRelayBot
             manager.Subscribe<SteamFriends.FriendMsgCallback>(bot.OnFriendMessage);
 
             manager.Subscribe<SteamFriends.ChatMsgCallback>(bot.OnChatroomMessage);
+			
+			manager.Subscribe<SteamUser.UpdateMachineAuthCallback>(bot.OnMachineAuth);
 
             bot.isRunning = true;
 

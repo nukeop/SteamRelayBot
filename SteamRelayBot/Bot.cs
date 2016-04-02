@@ -1,6 +1,7 @@
 ﻿using SteamKit2;
 using SteamRelayBot.Commands;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text.RegularExpressions;
@@ -37,6 +38,11 @@ namespace SteamRelayBot
         SteamUser steamUser;
         SteamFriends steamFriends;
         SteamClient steamClient;
+
+        //Credentials
+        string user = ConfigurationManager.AppSettings["user"];
+        string pass = ConfigurationManager.AppSettings["password"];
+        string authCode = "";
 
         //ID of the chatroom we're in
         public SteamID chatRoomID;
@@ -98,22 +104,32 @@ namespace SteamRelayBot
                 else
                     return;
             }
-            
-            string user = ConfigurationManager.AppSettings["user"];
-            string pass = ConfigurationManager.AppSettings["password"];
-
+			
             log.Info(String.Format("Connected to Steam! Logging in '{0}'...", user));
-
-            steamUser.LogOn(new SteamUser.LogOnDetails
-            {
-                Username = user,
-                Password = pass,
-            });
+            
         }
 
         public void OnConnected(SteamClient.ConnectedCallback callback)
         {
             Connect(callback, 10);
+
+            byte[] sentryHash = null;
+            if (File.Exists("sentry.bin"))
+            {
+                byte[] sentryFile = File.ReadAllBytes("sentry.bin");
+                sentryHash = CryptoHelper.SHAHash(sentryFile);
+            }
+			
+            steamUser.LogOn(new SteamUser.LogOnDetails
+            {
+                Username = user,
+                Password = pass,
+
+                AuthCode = authCode,
+
+                SentryFileHash = sentryHash,
+            });
+
         }
 
         public void OnDisconnected(SteamClient.DisconnectedCallback callback)
@@ -125,24 +141,22 @@ namespace SteamRelayBot
 
         public void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
+            if (callback.Result == EResult.AccountLogonDenied)
+            {
+                Console.WriteLine("This account is SteamGuard protected.");
+
+                Console.Write("Please enter the auth code sent to the email at {0}: ", callback.EmailDomain);
+
+                authCode = Console.ReadLine();
+
+                return;
+            }
             if (callback.Result != EResult.OK)
             {
-                if (callback.Result == EResult.AccountLogonDenied)
-                {
-
-                    log.Error("Unable to logon to Steam: This account is SteamGuard protected.");
-
-                    isRunning = false;
-
-                    return;
-                }
-
                 log.Error(String.Format("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult));
-
                 isRunning = false;
                 return;
             }
-
             log.Info("Successfully logged on!");
         }
 
@@ -211,6 +225,26 @@ namespace SteamRelayBot
             }
 
             ChatroomMessage(chatRoomID, String.Format("RelayBot™ signed in and joined chatroom: {0}", callback.ChatRoomName));
+        }
+
+        public void OnMachineAuth(SteamUser.UpdateMachineAuthCallback callback)
+        {
+            Console.WriteLine("Updating sentryfile...");
+            byte[] sentryHash = CryptoHelper.SHAHash(callback.Data);
+            File.WriteAllBytes("sentry.bin", callback.Data);
+            steamUser.SendMachineAuthResponse(new SteamUser.MachineAuthDetails
+            {
+                JobID = callback.JobID,
+                FileName = callback.FileName,
+                BytesWritten = callback.BytesToWrite,
+                FileSize = callback.Data.Length,
+                Offset = callback.Offset,
+                Result = EResult.OK,
+                LastError = 0,
+                OneTimePassword = callback.OneTimePassword,
+                SentryFileHash = sentryHash,
+            });
+            Console.WriteLine("Done!");
         }
 
         public void OnChatroomMessage(SteamFriends.ChatMsgCallback callback)
