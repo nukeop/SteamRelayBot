@@ -42,6 +42,7 @@ namespace SteamRelayBot
         //Credentials
         string user = ConfigurationManager.AppSettings["user"];
         string pass = ConfigurationManager.AppSettings["password"];
+        public string apikey = ConfigurationManager.AppSettings["apikey"];
         string authCode = "";
 
         //ID of the chatroom we're in
@@ -82,6 +83,7 @@ namespace SteamRelayBot
                 new AddTrivia(),
                 new SpillTheBeans(),
                 new Nsa(),
+                new Game(),
             };
 
             foreach(ICommand com in commandsToAdd)
@@ -388,6 +390,10 @@ namespace SteamRelayBot
             else if (callback.Message.Contains("!insult "))
             {
                 TryCallCommandGroup(callback, "insult", new Object[] { mChattingUsers });
+            }
+            else if (callback.Message.Contains("!games "))
+            {
+                TryCallCommandGroup(callback, "games", new Object[] { mChattingUsers });
             }
             else if (callback.Message.Contains("!addtrivia"))
             {
