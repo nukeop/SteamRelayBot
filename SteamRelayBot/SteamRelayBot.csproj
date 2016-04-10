@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -82,6 +82,7 @@
     <Compile Include="Commands\AddTrivia.cs" />
     <Compile Include="Commands\DuckDuckGoDefine.cs" />
     <Compile Include="Commands\EightBall.cs" />
+    <Compile Include="Commands\Game.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Commands\Insult.cs" />
     <Compile Include="Commands\Joke.cs" />
