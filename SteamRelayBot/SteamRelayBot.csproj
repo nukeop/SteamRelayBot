@@ -92,6 +92,7 @@
     <Compile Include="Commands\Stock.cs" />
     <Compile Include="Commands\Trivia.cs" />
     <Compile Include="Commands\UrbanDictionary.cs" />
+    <Compile Include="ConfigElements.cs" />
     <Compile Include="DataSet1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
