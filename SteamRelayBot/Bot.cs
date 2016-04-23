@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace SteamRelayBot
 {
@@ -48,6 +49,9 @@ namespace SteamRelayBot
         //ID of the chatroom we're in
         public SteamID chatRoomID;
 
+        //IDs of chatrooms to autojoin when connected
+        public List<string> mAutojoinChatRooms = new List<string>();
+
         //Continue running
         public bool isRunning;
 
@@ -68,6 +72,14 @@ namespace SteamRelayBot
             steamUser = user;
             steamFriends = friends;
             steamClient = client;
+
+            //Load chatrooms to automatically join
+            AutojoinGroupChatConfigurationSection sec = (AutojoinGroupChatConfigurationSection)ConfigurationManager.GetSection("autojoinGroupChats");
+            GroupChatElementCollection gcec = sec.SteamIDs;
+            for(int i=0; i<sec.SteamIDs.Count; i++)
+            {
+                mAutojoinChatRooms.Add(gcec[i].SteamID);
+            }
 
             //Add instances of commands to the list
             List<ICommand> commandsToAdd = new List<ICommand> {
@@ -138,6 +150,10 @@ namespace SteamRelayBot
         {
             log.Info("Disconnected from Steam");
 
+            //Wait before reconnecting
+            log.Info("Sleeping for 5000ms before reconnecting");
+            Thread.Sleep(5000);
+
             steamClient.Connect();
         }
 
@@ -160,6 +176,14 @@ namespace SteamRelayBot
                 return;
             }
             log.Info("Successfully logged on!");
+
+            log.Info("Joining chatrooms automatically");
+            foreach(string chatroomID in mAutojoinChatRooms)
+            {
+                SteamID chatroomSteamID = new SteamID(ulong.Parse(chatroomID));
+                steamFriends.JoinChat(chatroomSteamID);
+                chatRoomID = chatroomSteamID;
+            }
         }
 
         public void OnAccountInfo(SteamUser.AccountInfoCallback callback)
