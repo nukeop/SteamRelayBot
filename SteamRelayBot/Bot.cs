@@ -57,9 +57,9 @@ namespace SteamRelayBot
 
         //Lists of commands
         List<string> mSimpleGroupCommands = new List<string> { "8ball", "joke", "trivia", "nsa" };
-        List<string> mArgGroupCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans" };
+        List<string> mArgGroupCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans", "movie" };
         List<string> mSimpleUserCommands = new List<string> { "8ball", "joke", "trivia", "nsa" };
-        List<string> mArgUserCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans" };
+        List<string> mArgUserCommands = new List<string> { "stock", "ddg", "urban", "addjoke", "spillthebeans", "movie" };
 
 
         public Bot(SteamUser user, SteamFriends friends, SteamClient client)
@@ -96,6 +96,7 @@ namespace SteamRelayBot
                 new SpillTheBeans(),
                 new Nsa(),
                 new Game(),
+                new Movie(),
             };
 
             foreach(ICommand com in commandsToAdd)
@@ -250,6 +251,7 @@ namespace SteamRelayBot
                 log.Warning(String.Format("Not allowed to join {}", chatRoomID));
             }
 
+            chatRoomID = callback.ChatID;
             ChatroomMessage(chatRoomID, String.Format("RelayBot™ signed in and joined chatroom: {0}", callback.ChatRoomName));
         }
 
