@@ -27,10 +27,16 @@ namespace SteamRelayBot
             return log;
         }
 
-        public static string CreateLogFilename(string name)
+        public static string CreateChatroomLogFilename(string name)
         {
             //A tool to create a standard filename from a chatroom name
             return name + "-chatroom.log";
+        }
+
+        public static string CreateFriendChatLogFilename(string name)
+        {
+            //A tool to create a standard filename from a steam user name
+            return name + "-private.log";
         }
 
         public void LogMessage(string message, string level)

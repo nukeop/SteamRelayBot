@@ -1,6 +1,7 @@
 ﻿using SteamKit2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SteamRelayBot.Commands
 {
@@ -30,26 +31,17 @@ namespace SteamRelayBot.Commands
             List<string> strings = new List<string>(callback.Message.Split(' '));
             strings.RemoveAt(0);
             string user = (String.Join(" ", strings.ToArray()));
-            bool found = false;
 
             List<SteamUserInfo> chattingUsers = args[0] as List<SteamUserInfo>;
-            foreach (SteamUserInfo sui in chattingUsers)
-            {
-                if (sui.username.Equals(user))
-                {
-                    found = true;
-                    break;
-                }
-            }
 
-            if (found)
+            if (chattingUsers.Where(x => x.username.Equals(user)).Count() > 0)
             {
                 string insult = Util.RandomChoice<string>(Util.insults);
                 bot.ChatroomMessage(bot.chatRoomID, String.Format(insult, user));
             }
             else
             {
-                bot.ChatroomMessage(bot.chatRoomID, "I'm not going to insult somebody who isn't even here, or hasn't talked yet.");
+                bot.ChatroomMessage(bot.chatRoomID, "I'm not going to insult somebody who isn't even here.");
             }
         }
     }

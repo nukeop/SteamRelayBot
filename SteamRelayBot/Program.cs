@@ -46,7 +46,8 @@ namespace SteamRelayBot
             manager.Subscribe<SteamFriends.FriendMsgCallback>(bot.OnFriendMessage);
 
             manager.Subscribe<SteamFriends.ChatMsgCallback>(bot.OnChatroomMessage);
-			
+            manager.Subscribe<SteamFriends.ChatMemberInfoCallback>(bot.OnMemberInfo);
+
             manager.Subscribe<SteamUser.UpdateMachineAuthCallback>(bot.OnMachineAuth);
 
             bot.isRunning = true;
@@ -56,9 +57,17 @@ namespace SteamRelayBot
             steamClient.Connect();
 
             //callback loop
-            while (bot.isRunning)
+            try
             {
-                manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
+                while (bot.isRunning)
+                {
+                    manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
+                }
+            }
+            catch(Exception e)
+            {
+                Logger.filename = "RelayBot.log";
+                log.Error(String.Format("Caught exception: {0}\nMessage: {1}\nStack trace: {2}", e.GetType().ToString(), e.Message, e.StackTrace));
             }
         }
     }
