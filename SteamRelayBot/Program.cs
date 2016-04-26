@@ -57,18 +57,21 @@ namespace SteamRelayBot
             steamClient.Connect();
 
             //callback loop
-            try
+            
+            while (bot.isRunning)
             {
-                while (bot.isRunning)
+                try
                 {
                     manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
                 }
+                catch (Exception e)
+                {
+                    Logger.filename = "RelayBot.log";
+                    log.Error(String.Format("Caught exception: {0}\nMessage: {1}\nStack trace: {2}", e.GetType().ToString(), e.Message, e.StackTrace));
+                }
             }
-            catch(Exception e)
-            {
-                Logger.filename = "RelayBot.log";
-                log.Error(String.Format("Caught exception: {0}\nMessage: {1}\nStack trace: {2}", e.GetType().ToString(), e.Message, e.StackTrace));
-            }
+            
+            
         }
     }
 }
