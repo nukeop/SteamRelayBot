@@ -24,7 +24,7 @@ namespace SteamRelayBot
         public static string[] insults = { "Hey {0}, eat a dick", "Hey {0}, go fuck yourself", "Hey {0}, you're one ugly fag",
                                     "{0} is a dumb manboon", "{0} is a filthy liberal scum", "{0} buys Nvidia products",
                                     "{0} you sonnovabitch", "{0} chats at CDS", "{0} sucks", "{0}, you should kill yourself",
-                                    "{0} is a total loser", "{0} is pure scum",
+									"{0} is a total loser", "{0} is pure scum", "{0} is a low altitude flyer",
                                     };
 
         public static T RandomChoice<T>(IEnumerable<T> source)
@@ -46,8 +46,41 @@ namespace SteamRelayBot
         public static string GetYoutubeTitle(string id)
         {
             WebClient client = new WebClient();
-            return GetArgs(client.DownloadString(String.Format("http://youtube.com/get_video_info?video_id={0}&el=vevo&el=embedded", id)), "title", '&');
+			string infoString = client.DownloadString (String.Format ("http://youtube.com/get_video_info?video_id={0}&el=vevo&el=embedded", id));
+
+			if (!string.IsNullOrEmpty (infoString)) {
+				string title = GetArgs (infoString, "title", '&');
+				string rating = GetArgs (infoString, "avg_rating", '&');
+				string length = GetArgs (infoString, "length_seconds", '&');
+
+				float fRating = float.Parse (rating);
+				int iLength = int.Parse (length);
+
+				length = string.Format ("{0}:{1}", iLength/60, iLength%60);
+
+				return String.Format ("{0} | {1} | {2}", title, length, RatingToStars(fRating));
+			}
+			else
+			{
+				return "Could not retrieve info about the video.";
+			}
         }
+
+		public static string RatingToStars(float rating)
+		{
+			string estar = "☆";
+			string fstar = "★";
+			string[] ratings = { 
+				"☆☆☆☆☆", 
+				"★☆☆☆☆", 
+				"★★☆☆☆", 
+				"★★★☆☆", 
+				"★★★★☆", 
+				"★★★★★", 
+			};
+
+			return string.Format (ratings[(int)Math.Round(rating)]);
+		}
 
         public static string GetYahooStocks(string company)
         {
