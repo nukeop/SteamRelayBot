@@ -438,7 +438,7 @@ namespace SteamRelayBot
             {
                 foreach (SteamID user in subscribingUsers)
                 {
-                    FriendMessage (user, String.Format ("{0} entered chat."));
+                    FriendMessage (user, String.Format ("{0} entered chat.", steamFriends.GetFriendPersonaName (chatterID)));
                 }
             }
         }
@@ -463,7 +463,7 @@ namespace SteamRelayBot
             {
                 foreach (SteamID user in subscribingUsers)
                 {
-                    FriendMessage (user, String.Format ("{0} left the chat."));
+                    FriendMessage (user, String.Format ("{0} left the chat.", steamFriends.GetFriendPersonaName (chatterID)));
                 }
             }
         }
