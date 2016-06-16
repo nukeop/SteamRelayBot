@@ -33,7 +33,7 @@ namespace SteamRelayBot
         List<SteamID> mGreeted;
 
         //List of people seen chatting
-        Dictionary<SteamID, List<SteamUserInfo>> mChattingUsers;
+        public Dictionary<SteamID, List<SteamUserInfo>> mChattingUsers;
 
         //Dictionary of available commands
         Dictionary<string, ICommand> mCommands;
@@ -55,9 +55,9 @@ namespace SteamRelayBot
         public Dictionary<SteamID, string> AllChatrooms = new Dictionary<SteamID, string> ();
 
         //Dictionary of users that want messages relayed to them in the form of chatroomID - list of users
-        public Dictionary<SteamID, List<SteamID>> UserRelays = new Dictionary<SteamID, List<SteamID>>();
-        //Users subscribing to any channel (to prevent more than one subscription
-        public List<SteamID> SubscribingUsers = new List<SteamID> ();
+        public Dictionary<SteamID, List<SteamID>> UserRelays = new Dictionary<SteamID, List<SteamID>> ();
+        //Users subscribing to any channel (to prevent more than one subscription - userID:groupID
+        public Dictionary<SteamID, SteamID> SubscribingUsers = new Dictionary<SteamID, SteamID> ();
 
         //IDs of chatrooms to autojoin when connected
         public List<string> mAutojoinChatRooms = new List<string> ();
@@ -132,7 +132,7 @@ namespace SteamRelayBot
                 new Nsa (),
                 new Game (),
                 new Movie (),
-                new Echo(),
+                new Echo (),
             };
 
             foreach (ICommand com in commandsToAdd)
@@ -286,6 +286,17 @@ namespace SteamRelayBot
 
             ParseCommands (callback);
 
+            //Relay the message to appropriate group chat if user is subscribing
+            if (callback.EntryType.Equals (EChatEntryType.ChatMsg) && SubscribingUsers.Keys.ToList ().Contains (callback.Sender))
+            {
+                SteamID groupID;
+                SubscribingUsers.TryGetValue (callback.Sender, out groupID);
+                if (groupID != null)
+                {
+                    ChatroomMessage (groupID, String.Format("{0}: {1}", steamFriends.GetFriendPersonaName(callback.Sender), callback.Message));
+                }
+            }
+
             //Restore old log filename
             Logger.filename = currentLogFile;
         }
@@ -366,10 +377,10 @@ namespace SteamRelayBot
             {
                 foreach (SteamID user in subscribingUsers)
                 {
-                    FriendMessage (user, String.Format("({0}) {1}: {2}", 
-                                                       AllChatrooms[chatRoomID],
-                                                       steamFriends.GetFriendPersonaName (callback.ChatterID), 
-                                                       callback.Message));
+                    FriendMessage (user, String.Format ("({0}) {1}: {2}", 
+                                                        AllChatrooms [chatRoomID],
+                                                        steamFriends.GetFriendPersonaName (callback.ChatterID), 
+                                                        callback.Message));
                 }
             }
 
@@ -419,6 +430,17 @@ namespace SteamRelayBot
             {
                 ChatroomMessage (chatRoomID, "/leave");
             }
+
+            //Show this event to subscribing users
+            List<SteamID> subscribingUsers;
+            UserRelays.TryGetValue (chatRoomID, out subscribingUsers);
+            if (subscribingUsers != null)
+            {
+                foreach (SteamID user in subscribingUsers)
+                {
+                    FriendMessage (user, String.Format ("{0} entered chat."));
+                }
+            }
         }
 
         public void MemberLeftChat (SteamID chatterID)
@@ -433,6 +455,17 @@ namespace SteamRelayBot
             }
 
             log.Info (String.Format ("{0}[[{1}]] left the chat", steamFriends.GetFriendPersonaName (chatterID), chatterID.Render ()));
+
+            //Show this event to subscribing users
+            List<SteamID> subscribingUsers;
+            UserRelays.TryGetValue (chatRoomID, out subscribingUsers);
+            if (subscribingUsers != null)
+            {
+                foreach (SteamID user in subscribingUsers)
+                {
+                    FriendMessage (user, String.Format ("{0} left the chat."));
+                }
+            }
         }
 
         public void ChatroomMessage (SteamID chatID, string msg)
@@ -509,7 +542,6 @@ namespace SteamRelayBot
             {
                 TryCallCommandFriend (callback, "addtrivia", new Object[] { steamFriends });
             }
-
         }
 
         //Parses commands from group chat
