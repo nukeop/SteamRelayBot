@@ -53,6 +53,8 @@ namespace SteamRelayBot
         public SteamID chatRoomID;
         //IDs of all chatrooms the bot is in
         public Dictionary<SteamID, string> AllChatrooms = new Dictionary<SteamID, string> ();
+		//Cached names of chatrooms turned into valid filenames
+		public Dictionary<SteamID, string> ChatroomFilenames = new Dictionary<SteamID, string> ();
 
         //Dictionary of users that want messages relayed to them in the form of chatroomID - list of users
         public Dictionary<SteamID, List<SteamID>> UserRelays = new Dictionary<SteamID, List<SteamID>> ();
@@ -346,7 +348,24 @@ namespace SteamRelayBot
 
             //Log to a separate file for every chatroom
             string currentLogFile = Logger.filename;
-            Logger.filename = Logger.CreateChatroomLogFilename (callback.ChatRoomID.Render ());
+
+			string chatroomFilename;
+			//Try to find a cached filename or create it if needed
+            ChatroomFilenames.TryGetValue(chatRoomID, out chatroomFilename);
+            if (String.IsNullOrEmpty (chatroomFilename))
+            {
+                chatroomFilename = AllChatrooms [callback.ChatRoomID];
+                foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                {
+                    chatroomFilename = chatroomFilename.Replace (c, '_');
+                }
+                chatroomFilename = chatroomFilename.Replace (' ', '_');
+
+                ChatroomFilenames [chatRoomID] = chatroomFilename;
+            }
+
+
+            Logger.filename = Logger.CreateChatroomLogFilename (chatroomFilename);
 
             if (callback.ChatMsgType.Equals (EChatEntryType.ChatMsg))
             {
@@ -394,7 +413,23 @@ namespace SteamRelayBot
 
             //Log to a separate file for every chatroom
             string currentLogFile = Logger.filename;
-            Logger.filename = Logger.CreateChatroomLogFilename (chatRoomID.Render ());
+
+            string chatroomFilename;
+            //Try to find a cached filename or create it if needed
+            ChatroomFilenames.TryGetValue(chatRoomID, out chatroomFilename);
+            if (String.IsNullOrEmpty (chatroomFilename))
+            {
+                chatroomFilename = AllChatrooms [callback.ChatRoomID];
+                foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                {
+                    chatroomFilename = chatroomFilename.Replace (c, '_');
+                }
+                chatroomFilename = chatroomFilename.Replace (' ', '_');
+
+                ChatroomFilenames [chatRoomID] = chatroomFilename;
+            }
+
+            Logger.filename = Logger.CreateChatroomLogFilename (chatroomFilename);
 
             SteamFriends.ChatMemberInfoCallback.StateChangeDetails stateChangeInfo = callback.StateChangeInfo;
             SteamID chatterID = stateChangeInfo.ChatterActedOn;
