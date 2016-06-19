@@ -29,9 +29,6 @@ namespace SteamRelayBot
         //Logger
         private Logger log;
 
-        //List of people greeted by this bot
-        List<SteamID> mGreeted;
-
         //List of people seen chatting
         public Dictionary<SteamID, List<SteamUserInfo>> mChattingUsers;
 
@@ -101,7 +98,6 @@ namespace SteamRelayBot
 
         public Bot (SteamUser user, SteamFriends friends, SteamClient client)
         {
-            mGreeted = new List<SteamID> ();
             mChattingUsers = new Dictionary<SteamID, List<SteamUserInfo>> ();
             mCommands = new Dictionary<string, ICommand> ();
             log = Logger.GetLogger ();
@@ -314,10 +310,13 @@ namespace SteamRelayBot
             chatRoomID = callback.ChatID;
 
             mChattingUsers [chatRoomID] = new List<SteamUserInfo> ();
-            foreach (SteamFriends.ChatMemberInfo member in callback.ChatMembers)
-            {
-                mChattingUsers [chatRoomID].Add (new SteamUserInfo (member.SteamID, steamFriends.GetFriendPersonaName (member.SteamID)));
-            }
+			if (callback.ChatMembers != null) 
+			{
+				foreach (SteamFriends.ChatMemberInfo member in callback.ChatMembers) 
+				{
+					mChattingUsers [chatRoomID].Add (new SteamUserInfo (member.SteamID, steamFriends.GetFriendPersonaName (member.SteamID)));
+				}
+			}
 
             AllChatrooms.Add (callback.ChatID, callback.ChatRoomName);		
         }
@@ -370,17 +369,6 @@ namespace SteamRelayBot
             if (callback.ChatMsgType.Equals (EChatEntryType.ChatMsg))
             {
                 log.Info (String.Format ("{0}[[{1}]]: {2}", steamFriends.GetFriendPersonaName (callback.ChatterID), callback.ChatterID.Render (), callback.Message));
-            }
-
-            //Greet users
-            if (callback.Message == "hi" || callback.Message == "hello" || callback.Message == "hey")
-            {
-                
-                if (!mGreeted.Contains (callback.ChatterID))
-                {
-                    ChatroomMessage (chatRoomID, String.Format ("Hello {0}", steamFriends.GetFriendPersonaName (callback.ChatterID)));
-                    mGreeted.Add (callback.ChatterID);
-                }
             }
 
             //Youtube titles
@@ -465,6 +453,9 @@ namespace SteamRelayBot
             {
                 ChatroomMessage (chatRoomID, "/leave");
             }
+
+			//Greet user
+			ChatroomMessage (chatRoomID, String.Format ("Hello {0}", steamFriends.GetFriendPersonaName (chatterID)));
 
             //Show this event to subscribing users
             List<SteamID> subscribingUsers;
