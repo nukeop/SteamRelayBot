@@ -61,6 +61,12 @@ namespace SteamRelayBot
         //IDs of chatrooms to autojoin when connected
         public List<string> mAutojoinChatRooms = new List<string> ();
 
+		//IDs of chatrooms where users are allowed to perform potentially risky actions
+		public List<string> mAdminChatRooms = new List<string> ();
+
+		//IDs of blacklisted users
+		public List<string> mBlacklist = new List<string> ();
+
         //Continue running
         public bool isRunning;
 
@@ -113,6 +119,20 @@ namespace SteamRelayBot
             {
                 mAutojoinChatRooms.Add (gcec [i].SteamID);
             }
+
+			AdminGroupChatConfigurationSection adm = (AdminGroupChatConfigurationSection)ConfigurationManager.GetSection ("adminGroupChats");
+			gcec = adm.SteamIDs;
+			for (int i = 0; i < adm.SteamIDs.Count; i++)
+			{
+				mAdminChatRooms.Add (gcec [i].SteamID);
+			}
+
+			BlacklistedUsersConfigurationSection blk = (BlacklistedUsersConfigurationSection)ConfigurationManager.GetSection ("blacklist");
+			SteamUserElementCollection suec = blk.SteamIDs;
+			for (int i = 0; i < blk.SteamIDs.Count; i++)
+			{
+				mBlacklist.Add (suec [i].SteamID);
+			}
 
             //Add instances of commands to the list
             List<ICommand> commandsToAdd = new List<ICommand> {
@@ -282,7 +302,8 @@ namespace SteamRelayBot
             if (callback.EntryType.Equals (EChatEntryType.ChatMsg))
                 log.Info (String.Format ("Message from {0}: {1}", steamFriends.GetFriendPersonaName (callback.Sender), callback.Message));
 
-            ParseCommands (callback);
+			if(!mBlacklist.Contains(callback.Sender.ConvertToUInt64().ToString()))
+            	ParseCommands (callback);
 
             //Relay the message to appropriate group chat if user is subscribing
             if (callback.EntryType.Equals (EChatEntryType.ChatMsg) && SubscribingUsers.Keys.ToList ().Contains (callback.Sender))
@@ -375,7 +396,9 @@ namespace SteamRelayBot
             ParseYoutubeLinks (callback);
 
             //Various commands
-            ParseCommands (callback);
+			Console.WriteLine(callback.ChatRoomID.ConvertToUInt64().ToString());
+			if(mAdminChatRooms.Contains(callback.ChatRoomID.ConvertToUInt64().ToString()) && !mBlacklist.Contains(callback.ChatterID.ConvertToUInt64().ToString()))
+            	ParseCommands (callback);
 
             //Relay message to users who subscribed
             List<SteamID> subscribingUsers;
@@ -455,7 +478,8 @@ namespace SteamRelayBot
             }
 
 			//Greet user
-			ChatroomMessage (chatRoomID, String.Format ("Hello {0}", steamFriends.GetFriendPersonaName (chatterID)));
+			if(mAdminChatRooms.Contains(chatRoomID.ConvertToUInt64().ToString()))
+				ChatroomMessage (chatRoomID, String.Format ("Hello {0}", steamFriends.GetFriendPersonaName (chatterID)));
 
             //Show this event to subscribing users
             List<SteamID> subscribingUsers;
